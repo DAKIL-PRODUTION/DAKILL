@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DAKIL_OFFICIAL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="dakil.jpeg" />
+</head>
+<body>
+
+  <!-- ░░ TOAST ░░ -->
+  <div id="toast" role="alert">
+    <span id="toast-icon"></span>
+    <span id="toast-msg"></span>
+  </div>
+
+  <!-- ░░ HEADER ░░ -->
+  <header>
+    <div class="header-inner">
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        Live Dashboard
+      </div>
+      <h1>Kas Wi‑Fi Bersama <span class="emoji">📡</span></h1>
+      <p class="subtitle">Patungan bulanan · Transparan · Realtime</p>
+    </div>
+    <div class="header-glow"></div>
+  </header>
+
+  <!-- ░░ MAIN ░░ -->
+  <main class="container">
+
+    <!-- Setup Guide -->
+    <section id="setup-guide" class="setup-card" aria-label="Panduan setup">
+      <div class="setup-icon">⚙️</div>
+      <h2>Langkah Setup <span class="once-tag">sekali saja</span></h2>
+      <ol class="setup-steps">
+        <li>Buka <a href="https://script.google.com" target="_blank" rel="noopener">script.google.com</a> → buat project baru</li>
+        <li>Paste isi file <code>KasWiFi_GoogleAppsScript.js</code></li>
+        <li>Klik <strong>Deploy → New Deployment → Web App</strong></li>
+        <li>Set <em>Execute as: Me</em> &amp; <em>Who has access: Anyone</em></li>
+        <li>Copy URL, paste di bawah → klik <strong>Simpan</strong></li>
+      </ol>
+      <div class="url-row">
+        <input
+          id="gas-url-input"
+          class="field-input"
+          type="url"
+          placeholder="https://script.google.com/macros/s/AKfycbwXgExPcbg6aHvKI1yhZf00m-3sMzL8qd7rdY6nI1cdFMpYS2vM4WVvMDVxYWr8Idk/exec
+          "
+          autocomplete="off"
+        />
+        <button class="btn-save" onclick="saveGasUrl()">Simpan URL</button>
+      </div>
+    </section>
+
+    <!-- Status bar -->
+    <div id="status-bar" class="status-bar">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Menghubungkan…</span>
+    </div>
+
+    <!-- Stats Grid -->
+    <section class="card fade-in" aria-label="Ringkasan kas">
+      <h3 class="card-title">Ringkasan Kas Bulan Ini</h3>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Terkumpul</div>
+          <div class="stat-value green" id="stat-masuk">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Pengeluaran</div>
+          <div class="stat-value red" id="stat-keluar">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Saldo</div>
+          <div class="stat-value blue" id="stat-saldo">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Sisa Target</div>
+          <div class="stat-value amber" id="stat-sisa">—</div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-wrap">
+        <div class="progress-header">
+          <span class="progress-label">Progress Iuran</span>
+          <span class="progress-pct" id="stat-persen">0%</span>
+        </div>
+        <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-fill" id="progress-fill"></div>
+          <div class="progress-shimmer"></div>
+        </div>
+        <div class="progress-meta">
+          <span id="stat-peserta">0 peserta</span>
+          <span>Target: <strong id="stat-target">—</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Participants -->
+    <section class="card fade-in delay-1" aria-label="Daftar partisipan">
+      <h3 class="card-title">Partisipan Bulan Ini</h3>
+      <div class="participant-list" id="participant-list">
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <p>Belum ada yang setor</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Form Setor -->
+    <section class="card fade-in delay-2" aria-label="Form setoran">
+      <h3 class="card-title">Catat Setoran</h3>
+      <div class="form-row">
+        <div class="field-group">
+          <label class="field-label" for="nama-input">Nama</label>
+          <input
+            class="field-input"
+            id="nama-input"
+            type="text"
+            placeholder="Kakang Dakil Ganteng"
+            maxlength="50"
+            autocomplete="name"
+          />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="nominal-input">Nominal (Rp)</label>
+          <input
+            class="field-input"
+            id="nominal-input"
+            type="number"
+            placeholder="50000"
+            min="10000"
+          />
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-setor" onclick="openQris()">
+        <span class="btn-spinner" id="spinner"></span>
+        <span id="btn-text">💸 Pembayaran Berhasil</span>
+      </button>
+    </section>
+
+    <!-- History -->
+    <section class="card fade-in delay-3" aria-label="Riwayat kas">
+      <div class="history-header">
+        <h3 class="card-title" style="margin-bottom:0">Riwayat saldo</h3>
+        <label class="toggle-label">
+          <input type="checkbox" id="filter-bulan" onchange="loadData()" checked />
+          <span>Bulan ini</span>
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table class="history-table" aria-label="Tabel riwayat kas">
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Nama</th>
+              <th>Nominal</th>
+              <th>Jenis</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr>
+              <td colspan="5">
+                <div class="empty-state"><div class="empty-icon">📋</div><p>Belum ada riwayat</p></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="footer-note">Auto-refresh tiap 10 detik · Data tersimpan di Google Sheets</p>
+  </main>
+
+
+  <!-- ░░ MODAL QRIS ░░ -->
+  <div id="qris-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Pembayaran QRIS" onclick="handleOverlayClick(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeQris()" aria-label="Tutup">&times;</button>
+
+      <div class="modal-head">
+        <div class="modal-badge">QRIS</div>
+        <h2 class="modal-title">Scan & Bayar</h2>
+        <p class="modal-sub">Scan kode QR di bawah menggunakan aplikasi dompet digital atau m-banking Anda</p>
+      </div>
+
+      <!-- QR Code area -->
+      <div class="qr-wrap">
+        <div class="qr-frame">
+          <!-- Placeholder QR — ganti src dengan QRIS asli Anda -->
+          <img
+            id="qris-img"
+            src="QR..jpeg"
+            alt="QR Code Pembayaran"
+            width="220"
+            height="220"
+          />
+          <div class="qr-corner tl"></div>
+          <div class="qr-corner tr"></div>
+          <div class="qr-corner bl"></div>
+          <div class="qr-corner br"></div>
+        </div>
+        <div class="qr-amount" id="qr-amount-display"></div>
+        <p class="qr-hint">Gunakan GoPay · OVO · Dana · ShopeePay · m-Banking</p>
+      </div>
+
+
+      <!-- After paying -->
+      <div class="modal-actions">
+        <p class="modal-confirm-hint">Setelah transfer, klik tombol di bawah untuk mencatat setoran</p>
+        <button class="btn-confirm" id="btn-confirm" onclick="confirmPayment()">
+          <span class="btn-spinner" id="spinner-modal"></span>
+          <span id="btn-confirm-text">✅ Sudah Bayar, Catat Sekarang</span>
+        </button>
+        <button class="btn-cancel" onclick="closeQris()">Batal</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="app.js"></script>
+</body>
+</html>
